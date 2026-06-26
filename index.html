@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Residencia O Faro · Test de Prevención</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --cream: #F7F4EE;
+    --ink: #1C1C1E;
+    --sage: #5A7A6A;
+    --sage-light: #E8F0EC;
+    --amber: #C8813A;
+    --amber-light: #FDF3E7;
+    --coral: #C05A4A;
+    --coral-light: #FAEAE8;
+    --slate: #6B7280;
+    --border: #D9D4CA;
+    --white: #FFFFFF;
+    --A: #2D6A4F;
+    --B: #5A7A6A;
+    --C: #C8813A;
+    --D: #C05A4A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--ink);
+    color: var(--white);
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: var(--sage);
+    opacity: 0.12;
+  }
+  .header-label {
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--sage); margin-bottom: 0.5rem;
+  }
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    line-height: 1.15; margin-bottom: 0.6rem;
+  }
+  .header p { font-size: 0.88rem; color: #A0A8A0; max-width: 560px; line-height: 1.6; }
+
+  .progress-bar-wrap {
+    background: var(--white); border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem; display: flex; align-items: center; gap: 1rem;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .progress-label { font-size: 0.75rem; font-weight: 600; color: var(--slate); white-space: nowrap; }
+  .progress-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--sage); border-radius: 3px; transition: width 0.4s ease; width: 0%; }
+  .progress-pct { font-size: 0.75rem; font-weight: 700; color: var(--sage); width: 36px; text-align: right; }
+
+  .main { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  /* LEGEND */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 0.75rem;
+    margin-bottom: 1.5rem; padding: 1rem;
+    background: var(--white); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: var(--ink); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* SCENARIO CARD */
+  .scenario-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .scenario-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+  /* SCENARIO HEADER — clickable strip */
+  .scenario-header {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1.25rem 1.5rem; cursor: pointer; user-select: none;
+    border-left: 4px solid transparent; transition: border-color 0.2s;
+  }
+  .scenario-card.open .scenario-header { border-left-color: var(--sage); }
+
+  .scenario-number {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem; line-height: 1; color: var(--border);
+    flex-shrink: 0; transition: color 0.2s; min-width: 2rem;
+  }
+  .scenario-card.open .scenario-number { color: var(--sage); }
+
+  .scenario-meta { flex: 1; }
+  .scenario-tag {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.2rem 0.5rem; border-radius: 4px;
+    margin-bottom: 0.4rem; width: fit-content;
+  }
+  .tag-ergo  { background: var(--sage-light);  color: var(--sage); }
+  .tag-psico { background: var(--amber-light); color: var(--amber); }
+  .tag-org   { background: #EEF0F8;            color: #4A5EB0; }
+  .tag-bio   { background: var(--coral-light); color: var(--coral); }
+
+  .scenario-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem; line-height: 1.25; margin-bottom: 0.2rem;
+  }
+  .scenario-subtitle { font-size: 0.78rem; color: var(--slate); }
+  .scenario-chevron { font-size: 0.85rem; color: var(--slate); transition: transform 0.3s; margin-top: 4px; }
+  .scenario-card.open .scenario-chevron { transform: rotate(180deg); }
+
+  /* BODY */
+  .scenario-body { display: none; border-top: 1px solid var(--border); }
+  .scenario-card.open .scenario-body { display: block; }
+
+  /* NARRATIVE BLOCK */
+  .narrative {
+    padding: 1.4rem 1.5rem 1.2rem;
+    background: #FAFAF8;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+    line-height: 1.85;
+    color: #2C2C2E;
+  }
+  .narrative-label {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--slate);
+    margin-bottom: 0.75rem;
+  }
+  .narrative-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* QUESTIONS */
+  .questions-wrap { padding: 1.25rem 1.5rem 1.5rem; }
+
+  .section-divider { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1.1rem; }
+  .section-divider-line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider-label {
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--slate); white-space: nowrap;
+  }
+
+  .question-block { margin-bottom: 1rem; }
+  .question-text { font-size: 0.84rem; font-weight: 500; color: var(--ink); margin-bottom: 0.45rem; line-height: 1.5; }
+  .options-row { display: flex; gap: 0.45rem; }
+  .opt-btn {
+    border: 1.5px solid var(--border); border-radius: 6px;
+    padding: 0.32rem 0.85rem; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; background: var(--white); transition: all 0.15s;
+    color: var(--ink); font-family: 'Inter', sans-serif;
+  }
+  .opt-btn:hover { border-color: var(--sage); color: var(--sage); }
+  .opt-btn.selected-A { background: var(--A); border-color: var(--A); color: #fff; }
+  .opt-btn.selected-B { background: var(--B); border-color: var(--B); color: #fff; }
+  .opt-btn.selected-C { background: var(--C); border-color: var(--C); color: #fff; }
+  .opt-btn.selected-D { background: var(--D); border-color: var(--D); color: #fff; }
+
+  /* CTA */
+  .cta-btn {
+    display: block; width: 100%; padding: 0.9rem;
+    background: var(--sage); color: var(--white);
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600;
+    border: none; border-radius: 8px; cursor: pointer; margin-top: 1.5rem;
+    transition: background 0.2s; letter-spacing: 0.02em;
+  }
+  .cta-btn:hover { background: #4A6A5A; }
+
+  /* RESULTS */
+  .results-card {
+    background: var(--ink); color: var(--white);
+    border-radius: 12px; padding: 2rem; margin-top: 2rem; display: none;
+  }
+  .results-card.visible { display: block; }
+  .results-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; margin-bottom: 1.5rem; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .result-item { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 1rem; }
+  .result-item-label { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A0A8A0; margin-bottom: 0.5rem; }
+  .result-item-bar-track { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 0.5rem; overflow: hidden; }
+  .result-item-bar { height: 100%; border-radius: 3px; }
+  .result-item-score { font-size: 1.1rem; font-weight: 700; }
+  .result-overall {
+    background: rgba(90,122,106,0.2); border: 1px solid var(--sage);
+    border-radius: 8px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .result-overall-label { font-size: 0.8rem; font-weight: 600; color: var(--sage); margin-bottom: 0.3rem; }
+  .result-overall-score { font-family: 'DM Serif Display', serif; font-size: 2.2rem; flex-shrink: 0; }
+  .result-feedback { font-size: 0.84rem; color: #C0C8C0; line-height: 1.65; }
+  .reset-btn {
+    display: block; width: 100%; padding: 0.7rem;
+    background: transparent; color: #A0A8A0;
+    font-family: 'Inter', sans-serif; font-size: 0.8rem;
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+    cursor: pointer; margin-top: 0.75rem; transition: all 0.2s;
+  }
+  .reset-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">Prevención de Riscos Laborais · INSST</div>
+  <h1>Residencia O Faro</h1>
+  <p>Le con atención cada situación do centro. Algunhas cousas non son o que parecen a primeira vista. Responde o cuestionario de Promoción da Saúde no Traballo segundo o que observas.</p>
+</div>
+
+<div class="progress-bar-wrap">
+  <span class="progress-label">Preguntas respondidas</span>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <span class="progress-pct" id="progressPct">0%</span>
+</div>
+
+<div class="main">
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--A)"></div> A = Alcanzado totalmente</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--B)"></div> B = Progreso considerable</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--C)"></div> C = Algún progreso</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--D)"></div> D = Non empezado</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ ESCENARIO 1 -->
+  <div class="scenario-card" id="sc1">
+    <div class="scenario-header" onclick="toggleScenario('sc1')">
+      <div class="scenario-number">01</div>
+      <div class="scenario-meta">
+        <span class="scenario-tag tag-org">Dirección</span>
+        <div class="scenario-title">A carpeta azul</div>
+        <div class="scenario-subtitle">Estratexia e compromiso da dirección</div>
+      </div>
+      <div class="scenario-chevron">▼</div>
+    </div>
+    <div class="scenario-body">
+      <div class="narrative">
+        <div class="narrative-label">Situación</div>
+        A directora da Residencia O Faro é coñecida no sector por ser unha muller meticulosa e comprometida. Na súa mesa sempre hai documentos ordenados, e nunha carpeta azul garda o que ela chama "o plan de saúde do centro": un documento de doce páxinas que redactou persoalmente hai tres anos, onde se detallan os valores do centro en materia de benestar laboral e se menciona a importancia da formación continua e da prevención. A carpeta está sempre visible, pero nunca se abre en reunión. O persoal máis antigo lembra que se fixo unha charla de presentación cando se publicou, aínda que non acudiu todo o mundo. Dende entón, non houbo máis accións formativas específicas sobre PST, e o orzamento destinado a estas cuestións fundíuse co xeral de xestión do centro. Cando Lara pregunta se hai revisións periódicas do documento, a directora respóndelle que "está pendente de actualización".
+      </div>
+      <div class="questions-wrap">
+        <div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">1. Estratexia e compromiso da dirección</span><div class="section-divider-line"></div></div>
+        <div class="question-block"><div class="question-text">a) Formuláronse por escrito os principios da política de PST, con compromiso visible da dirección?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q1a','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q1a','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q1a','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q1a','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">b) Integrase a PST na estrutura e procesos da organización?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q1b','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q1b','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q1b','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q1b','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">c) Asignáronse recursos suficientes (orzamento, persoal, formación, tempo) para desenvolver intervencións de PST?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q1c','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q1c','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q1c','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q1c','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">d) A dirección revisa de forma periódica o desenvolvemento e os resultados das intervencións en PST?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q1d','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q1d','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q1d','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q1d','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">e) A PST tense en conta nos programas de formación inicial e continua, especialmente para persoal directivo?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q1e','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q1e','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q1e','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q1e','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">f) Poñéronse á disposición do persoal servizos de atención e saúde (espazos de descanso, cantina, axudas sociais…)?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q1f','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q1f','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q1f','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q1f','D')">D</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ ESCENARIO 2 -->
+  <div class="scenario-card" id="sc2">
+    <div class="scenario-header" onclick="toggleScenario('sc2')">
+      <div class="scenario-number">02</div>
+      <div class="scenario-meta">
+        <span class="scenario-tag tag-psico">Organización</span>
+        <div class="scenario-title">Mércores, 14:50 h</div>
+        <div class="scenario-subtitle">Recursos humanos e organización do traballo</div>
+      </div>
+      <div class="scenario-chevron">▼</div>
+    </div>
+    <div class="scenario-body">
+      <div class="narrative">
+        <div class="narrative-label">Situación</div>
+        Son dez minutos antes de que remate o turno de mañá. Na sala de persoal, Celia — auxiliar con doce anos no centro — está facendo as anotacións finais do día mentres lle conta a Lara que o mes pasado tiveron que cubrir catro baixas simultáneas sen reforzos externos. "Saímos adiante porque somos un bo equipo", di, con orgullo xenuíno. A directora, cando se lle comentou, agradeceullo persoalmente e puxo o caso como exemplo de compromiso nunha reunión xeral. O centro acaba de renovar o convenio colectivo e incluíu dúas novas xornadas de formación obrigatorias ao ano, aínda que os temas elíxeos unicamente a dirección. A conciliación xestiónase "de palabra" entre compañeiras, sen ningún protocolo escrito, e a reincorporación tras baixas longas depende da dispoñibilidade do momento. Celia engade, case de pasada, que nunca lle preguntaron a súa opinión sobre como organizar os turnos.
+      </div>
+      <div class="questions-wrap">
+        <div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">2. Recursos humanos e organización do traballo</span><div class="section-divider-line"></div></div>
+        <div class="question-block"><div class="question-text">a) Adecúanse as capacidades do persoal ao posto de traballo ou realízanse accións para que as adquiran?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2a','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2a','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2a','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2a','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">b) Organizouse o traballo de forma que as esixencias non sexan nin escasas nin excesivas?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2b','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2b','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2b','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2b','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">c) Promóvense programas de desenvolvemento persoal da plantilla?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2c','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2c','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2c','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2c','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">d) A plantilla participa activamente na toma de decisións e no desenvolvemento das accións de PST?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2d','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2d','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2d','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2d','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">e) A dirección ten en conta e apoia á plantilla, promovendo un bo clima de traballo?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2e','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2e','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2e','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2e','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">f) Existen mecanismos especiais para asegurar a reincorporación do persoal despois dunha ausencia prolongada?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2f','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2f','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2f','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2f','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">g) Instauráronse medidas específicas para a conciliación da vida persoal coa laboral?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q2g','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q2g','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q2g','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q2g','D')">D</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ ESCENARIO 3 -->
+  <div class="scenario-card" id="sc3">
+    <div class="scenario-header" onclick="toggleScenario('sc3')">
+      <div class="scenario-number">03</div>
+      <div class="scenario-meta">
+        <span class="scenario-tag tag-org">Planificación</span>
+        <div class="scenario-title">O grupo de WhatsApp</div>
+        <div class="scenario-subtitle">Planificación da PST</div>
+      </div>
+      <div class="scenario-chevron">▼</div>
+    </div>
+    <div class="scenario-body">
+      <div class="narrative">
+        <div class="narrative-label">Situación</div>
+        O equipo de O Faro ten un grupo de WhatsApp chamado "Faro Equipo 💙" con 23 membros. Úsase a diario: para avisar de cambios de turno, compartir fotos das actividades con residentes, felicitar aniversarios e, de vez en cando, comentar incidencias do traballo. A semana pasada alguén publicou unha mensaxe dicindo que a cadeira da sala de curas estaba rota; ao día seguinte xa estaba arranxada. A directora tamén está no grupo e responde con frecuencia. Non existe, en cambio, ningún canal formal de comunicación interna para cuestións de saúde laboral, nin un plan escrito de PST que o persoal coñeza. Cando Lara pregunta se alguén sabe se hai previsto algunha intervención de prevención para o próximo trimestre, as respostas son vagas. "Supoño que algo haberá", di unha compañeira. Os datos de absentismo ou de incidencias non se analizan de forma sistemática: "iso lévao o xestor externo", explican.
+      </div>
+      <div class="questions-wrap">
+        <div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">3. Planificación da PST</span><div class="section-divider-line"></div></div>
+        <div class="question-block"><div class="question-text">a) As accións de PST planifícanse e comunícanse a través de toda a organización?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q3a','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q3a','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q3a','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q3a','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">b) As accións de PST baséanse nun análise periódico de datos de saúde: estrés, siniestralidade, riscos, expectativas?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q3b','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q3b','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q3b','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q3b','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">c) Infórmase a toda a plantilla dos proxectos de PST mediante canles áxiles e adecuados de comunicación interna?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q3c','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q3c','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q3c','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q3c','D')">D</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ ESCENARIO 4 -->
+  <div class="scenario-card" id="sc4">
+    <div class="scenario-header" onclick="toggleScenario('sc4')">
+      <div class="scenario-number">04</div>
+      <div class="scenario-meta">
+        <span class="scenario-tag tag-bio">Responsabilidade social</span>
+        <div class="scenario-title">A festa de Nadal</div>
+        <div class="scenario-subtitle">Responsabilidade social da organización</div>
+      </div>
+      <div class="scenario-chevron">▼</div>
+    </div>
+    <div class="scenario-body">
+      <div class="narrative">
+        <div class="narrative-label">Situación</div>
+        En decembro, a Residencia O Faro organiza cada ano unha festa de Nadal aberta ao barrio. Veñen familias dos residentes, algúns veciños e veciñas de toda a vida e os nenos e nenas da escola de ao lado. É un evento querido, con moita participación do persoal, e a directora sempre resalta o valor de "ser parte do barrio". O centro tamén colabora puntualmente cunha asociación de voluntariado local que visita os residentes os sábados. En canto á xestión de residuos, o centro ten contratada unha empresa especializada en residuos sanitarios, aínda que ningunha persoa do equipo recibiu formación específica sobre os procedementos a seguir nin coñece o contido exacto do contrato. Non existe ningún programa formal de impacto ambiental nin ningunha política escrita de responsabilidade social, aínda que a directora menciona estas iniciativas con frecuencia nas memorias anuais do centro.
+      </div>
+      <div class="questions-wrap">
+        <div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">4. Responsabilidade social</span><div class="section-divider-line"></div></div>
+        <div class="question-block"><div class="question-text">a) A organización tomou medidas concretas para previr os efectos nocivos da súa actividade sobre a poboación e o ambiente?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q4a','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q4a','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q4a','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q4a','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">b) A organización apoia de forma activa iniciativas sociais ou relacionadas coa saúde?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q4b','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q4b','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q4b','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q4b','D')">D</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ ESCENARIO 5 -->
+  <div class="scenario-card" id="sc5">
+    <div class="scenario-header" onclick="toggleScenario('sc5')">
+      <div class="scenario-number">05</div>
+      <div class="scenario-meta">
+        <span class="scenario-tag tag-ergo">Desenvolvemento</span>
+        <div class="scenario-title">O delegado invisible</div>
+        <div class="scenario-subtitle">Desenvolvemento da PST</div>
+      </div>
+      <div class="scenario-chevron">▼</div>
+    </div>
+    <div class="scenario-body">
+      <div class="narrative">
+        <div class="narrative-label">Situación</div>
+        Marcos leva sete anos no centro e é, oficialmente, o delegado de prevención. Ten o seu nome nunha placa na porta do despacho compartido e asistiu a un curso de 30 horas cando lle deron o cargo. Cada ano asina o documento de avaliación de riscos que prepara o servizo de prevención alleo contratado polo centro, e garda as copias nun caixón. Di que "non lle chegan queixas" e que iso é boa señal. O servizo externo visita o centro unha vez ao ano, fai o seu informe e envíao por correo. Ninguén máis o le. Non existe ningún comité interno de PST nin reunións periódicas sobre saúde laboral. Cando Lara lle pregunta a Marcos se saben que obxectivos ten o plan de prevención este ano, el pensa uns segundos e responde: "reducir accidentes, supoño, como sempre". As intervencións que se fan son puntuais e decídeas a dirección segundo as circunstancias, sen un plan anual definido nin indicadores de seguimento.
+      </div>
+      <div class="questions-wrap">
+        <div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">5. Desenvolvemento da PST</span><div class="section-divider-line"></div></div>
+        <div class="question-block"><div class="question-text">a) Designouse un grupo responsable da planificación e vixilancia das intervencións de PST con representación de todos os axentes clave?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q5a','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q5a','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q5a','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q5a','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">b) Existe un sistema de recollida periódica de información para a planificación das accións de PST?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q5b','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q5b','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q5b','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q5b','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">c) Definíronse os destinatarios e obxectivos cuantificables para todas as intervencións de PST?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q5c','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q5c','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q5c','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q5c','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">d) Nas intervencións de PST considéranse as actuacións a nivel individual, das condicións de traballo e da organización?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q5d','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q5d','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q5d','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q5d','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">e) Estableceuse un plan de avaliación sistemática e de mellora continua?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q5e','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q5e','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q5e','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q5e','D')">D</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ ESCENARIO 6 -->
+  <div class="scenario-card" id="sc6">
+    <div class="scenario-header" onclick="toggleScenario('sc6')">
+      <div class="scenario-number">06</div>
+      <div class="scenario-meta">
+        <span class="scenario-tag tag-ergo">Resultados</span>
+        <div class="scenario-title">Os números que non falan entre si</div>
+        <div class="scenario-subtitle">Resultados da PST</div>
+      </div>
+      <div class="scenario-chevron">▼</div>
+    </div>
+    <div class="scenario-body">
+      <div class="narrative">
+        <div class="narrative-label">Situación</div>
+        A Residencia O Faro obtivo este ano unha puntuación de 8,4 sobre 10 na enquisa de satisfacción de familias e residentes, a máis alta da súa historia. A directora publicouno na web do centro e no grupo de WhatsApp. O persoal estaba contento: "algo estaremos facendo ben", comentou Celia. O que ninguén sabe é se esa mellora ten relación coas dúas xornadas formativas que se fixeron en febreiro, co cambio de turnos que se implantou en xaneiro ou simplemente coa chegada de tres novos residentes máis autónomos. Os datos de absentismo do ano existen —están nun Excel que leva o xestor externo— pero nunca se cruzaron cos resultados de satisfacción nin cos partes de incidencias. A rotación de persoal baixou un 15% respecto ao ano anterior, pero tampouco se investigou por que. Cando Lara pregunta se existe algún informe que relacione as accións de PST cos resultados obtidos, a resposta é un silencio seguido dun "non creo que teñamos iso feito".
+      </div>
+      <div class="questions-wrap">
+        <div class="section-divider"><div class="section-divider-line"></div><span class="section-divider-label">6. Resultados da PST</span><div class="section-divider-line"></div></div>
+        <div class="question-block"><div class="question-text">a) Mídese e avalíase de forma sistemática o impacto das medidas de PST na satisfacción dos clientes?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q6a','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q6a','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q6a','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q6a','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">b) Mídese o impacto das medidas de PST na satisfacción das persoas da organización (condicións, clima, participación)?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q6b','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q6b','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q6b','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q6b','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">c) Mídese o impacto en indicadores de saúde: absentismo, siniestralidade, mellora das condicións de traballo?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q6c','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q6c','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q6c','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q6c','D')">D</button></div></div>
+        <div class="question-block"><div class="question-text">d) Mídese o impacto en indicadores económicos (retención de persoal, produtividade, estudos custo/beneficio)?</div><div class="options-row"><button class="opt-btn" onclick="selectOpt(this,'q6d','A')">A</button><button class="opt-btn" onclick="selectOpt(this,'q6d','B')">B</button><button class="opt-btn" onclick="selectOpt(this,'q6d','C')">C</button><button class="opt-btn" onclick="selectOpt(this,'q6d','D')">D</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="cta-btn" onclick="showResults()">Ver os meus resultados</button>
+
+  <div class="results-card" id="resultsCard">
+    <div class="results-title">Os teus resultados</div>
+    <div class="results-grid" id="resultsGrid"></div>
+    <div class="result-overall">
+      <div>
+        <div class="result-overall-label">PUNTUACIÓN GLOBAL</div>
+        <div class="result-feedback" id="resultFeedback"></div>
+      </div>
+      <div class="result-overall-score" id="overallScore"></div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">Reiniciar o cuestionario</button>
+  </div>
+
+</div>
+
+<script>
+  const answers = {};
+  const totalQuestions = 27;
+  const sections = {
+    '1': { label: 'Estratexia e dirección',  questions: ['q1a','q1b','q1c','q1d','q1e','q1f'] },
+    '2': { label: 'RR.HH. e organización',  questions: ['q2a','q2b','q2c','q2d','q2e','q2f','q2g'] },
+    '3': { label: 'Planificación PST',       questions: ['q3a','q3b','q3c'] },
+    '4': { label: 'Responsabilidade social', questions: ['q4a','q4b'] },
+    '5': { label: 'Desenvolvemento PST',     questions: ['q5a','q5b','q5c','q5d','q5e'] },
+    '6': { label: 'Resultados PST',          questions: ['q6a','q6b','q6c','q6d'] },
+  };
+
+  function selectOpt(btn, qId, val) {
+    btn.parentElement.querySelectorAll('.opt-btn').forEach(b => b.className = 'opt-btn');
+    btn.classList.add('selected-' + val);
+    answers[qId] = val;
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const pct = Math.round((Object.keys(answers).length / totalQuestions) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+  }
+
+  function toggleScenario(id) {
+    document.getElementById(id).classList.toggle('open');
+  }
+
+  function scoreVal(v) { return v==='A'?4:v==='B'?3:v==='C'?2:v==='D'?1:0; }
+  function barColor(p) { return p>=75?'var(--A)':p>=50?'var(--B)':p>=25?'var(--C)':'var(--D)'; }
+
+  function showResults() {
+    const grid = document.getElementById('resultsGrid');
+    grid.innerHTML = '';
+    let totalScore = 0, totalMax = 0;
+    for (const sec of Object.values(sections)) {
+      let score = 0;
+      const max = sec.questions.length * 4;
+      sec.questions.forEach(q => { if (answers[q]) score += scoreVal(answers[q]); });
+      const pct = max > 0 ? Math.round((score / max) * 100) : 0;
+      totalScore += score; totalMax += max;
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML = `<div class="result-item-label">${sec.label}</div><div class="result-item-bar-track"><div class="result-item-bar" style="width:${pct}%;background:${barColor(pct)}"></div></div><div class="result-item-score">${pct}%</div>`;
+      grid.appendChild(item);
+    }
+    const g = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+    document.getElementById('overallScore').textContent = g + '%';
+    document.getElementById('resultFeedback').textContent =
+      g >= 75 ? 'Nivel avanzado. Boa lectura crítica das situacións. Revisa as áreas con menor puntuación para afianzar o teu criterio.' :
+      g >= 50 ? 'Nivel intermedio. Identificaches ben algunhas situacións, pero outras teñen máis matices dos que parecen. Volve ás narrativas con calma.' :
+      g >= 25 ? 'Nivel inicial. As situacións son deliberadamente ambiguas. Reflexiona sobre a diferenza entre o que se fai e o que se fai ben.' :
+                'Punto de partida. Non te desanimes: estes escenarios están deseñados para enganar. Relee e volve a intentalo.';
+    document.getElementById('resultsCard').classList.add('visible');
+    document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function resetAll() {
+    Object.keys(answers).forEach(k => delete answers[k]);
+    document.querySelectorAll('.opt-btn').forEach(b => b.className = 'opt-btn');
+    document.getElementById('resultsCard').classList.remove('visible');
+    updateProgress();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('sc1').classList.add('open');
+</script>
+</body>
+</html>
